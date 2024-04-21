@@ -17,6 +17,11 @@ class WeatherViewModel: ViewModel() {
             val weather = service.getWeatherByLatLon(
                 lat, lon
             )
+
+            if (::locationInfos.isInitialized)
+                locationInfos.value?.add(weather)
+            else
+                locationInfos.postValue(arrayListOf(weather))
         }
     }
 
@@ -26,6 +31,12 @@ class WeatherViewModel: ViewModel() {
                 val weather = service.getWeatherByLocation(
                     locationName = locationName
                 )
+
+                if (::locationInfos.isInitialized)
+                    locationInfos.value?.add(weather)
+                else
+                    locationInfos.postValue(arrayListOf(weather))
+
             } catch (e: Exception) {
 
             }
