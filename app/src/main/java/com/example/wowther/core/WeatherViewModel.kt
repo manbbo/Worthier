@@ -15,7 +15,7 @@ class WeatherViewModel: ViewModel() {
     fun getWeatherByLocation(lat: String, lon: String) {
         viewModelScope.launch {
             val weather = service.getWeatherByLatLon(
-                lat, lon, apiKey = ""
+                lat, lon
             )
         }
     }
@@ -24,8 +24,7 @@ class WeatherViewModel: ViewModel() {
         viewModelScope.launch {
             try {
                 val weather = service.getWeatherByLocation(
-                    locationName = locationName,
-                    apiKey = ""
+                    locationName = locationName
                 )
             } catch (e: Exception) {
 
@@ -38,24 +37,19 @@ class WeatherViewModel: ViewModel() {
             try {
                 locationInfos.postValue(arrayListOf(
                     service.getWeatherByLocation(
-                        locationName = "Montevideo",
-                        apiKey = ""
+                        locationName = "Montevideo"
                 ),
                     service.getWeatherByLocation(
-                        locationName = "Londres",
-                        apiKey = ""
+                        locationName = "Londres"
                 ),
                     service.getWeatherByLocation(
-                        locationName = "San Pablo",
-                        apiKey = ""
+                        locationName = "San Pablo"
                 ),
                     service.getWeatherByLocation(
-                        locationName = "Buenos Aires",
-                        apiKey = ""
+                        locationName = "Buenos Aires"
                 ),
                     service.getWeatherByLocation(
-                        locationName = "Munich",
-                        apiKey = ""
+                        locationName = "Munich"
                 )))
 
                 hasError.postValue(false)
