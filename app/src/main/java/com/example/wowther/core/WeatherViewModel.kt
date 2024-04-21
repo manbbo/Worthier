@@ -43,7 +43,7 @@ class WeatherViewModel: ViewModel() {
         }
     }
 
-    fun getDefaultWeatherData() {
+    fun initializeWeatherData() {
         viewModelScope.launch {
             try {
                 locationInfos.postValue(arrayListOf(
