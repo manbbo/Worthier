@@ -6,8 +6,6 @@ plugins {
     alias(libs.plugins.jetbrainsKotlinAndroid)
 }
 
-val key = providers.gradleProperty("apikey").orElse("not found")
-
 android {
 
     namespace = "com.example.wowther"
@@ -27,7 +25,13 @@ android {
     }
 
     buildTypes {
+        debug {
+            buildConfigField("String", "apiKey", gradleLocalProperties(rootDir, providers).getProperty("apiKey"))
+            isMinifyEnabled = false
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
         release {
+            buildConfigField("String", "apiKey", gradleLocalProperties(rootDir, providers).getProperty("apiKey"))
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
@@ -41,6 +45,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
