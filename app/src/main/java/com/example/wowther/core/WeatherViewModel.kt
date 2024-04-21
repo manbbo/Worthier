@@ -9,19 +9,22 @@ import java.lang.Exception
 
 class WeatherViewModel: ViewModel() {
     private val service = WeatherService.api
-    lateinit var locationInfos: MutableLiveData<ArrayList<WeatherData>>
+    lateinit var locationInfos: MutableLiveData<MutableMap<String, WeatherData>>
     lateinit var hasError: MutableLiveData<Boolean>
 
     fun getWeatherByLocation(lat: String, lon: String) {
         viewModelScope.launch {
-            val weather = service.getWeatherByLatLon(
-                lat, lon
-            )
+            try {
+                val weather = service.getWeatherByLatLon(
+                    lat, lon
+                )
 
-            if (::locationInfos.isInitialized)
-                locationInfos.value?.add(weather)
-            else
-                locationInfos.postValue(arrayListOf(weather))
+                addWeatherToMap(weather)
+
+                hasError.postValue(false)
+            } catch (e: Exception) {
+                hasError.postValue(true)
+            }
         }
     }
 
@@ -32,36 +35,43 @@ class WeatherViewModel: ViewModel() {
                     locationName = locationName
                 )
 
-                if (::locationInfos.isInitialized)
-                    locationInfos.value?.add(weather)
-                else
-                    locationInfos.postValue(arrayListOf(weather))
+                addWeatherToMap(weather)
 
+                hasError.postValue(false)
             } catch (e: Exception) {
-
+                hasError.postValue(true)
             }
         }
+    }
+
+    private fun addWeatherToMap(weatherData: WeatherData) {
+        if (::locationInfos.isInitialized)
+            locationInfos.value?.let {
+                it[weatherData.name] = weatherData
+            }
+        else
+            locationInfos.postValue(mutableMapOf(Pair(weatherData.name, weatherData)))
     }
 
     fun initializeWeatherData() {
         viewModelScope.launch {
             try {
-                locationInfos.postValue(arrayListOf(
-                    service.getWeatherByLocation(
+                locationInfos.postValue(mutableMapOf(
+                    Pair("Montevideo", service.getWeatherByLocation(
                         locationName = "Montevideo"
-                ),
-                    service.getWeatherByLocation(
+                    )),
+                    Pair("Londres", service.getWeatherByLocation(
                         locationName = "Londres"
-                ),
-                    service.getWeatherByLocation(
+                    )),
+                    Pair("San Pablo", service.getWeatherByLocation(
                         locationName = "San Pablo"
-                ),
-                    service.getWeatherByLocation(
+                    )),
+                    Pair("Buenos Aires", service.getWeatherByLocation(
                         locationName = "Buenos Aires"
-                ),
-                    service.getWeatherByLocation(
+                    )),
+                    Pair("Munich", service.getWeatherByLocation(
                         locationName = "Munich"
-                )))
+                    ))))
 
                 hasError.postValue(false)
             } catch (e: Exception) {
