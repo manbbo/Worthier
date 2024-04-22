@@ -87,6 +87,7 @@ fun SearchBarComposite(viewModel: WeatherViewModel) {
         }
         Box (modifier = Modifier.fillMaxWidth()) {
             TextField(
+                modifier = Modifier.fillMaxWidth(),
                 enabled = true,
                 value = searchLocation,
                 onValueChange = { input ->
