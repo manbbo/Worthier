@@ -1,5 +1,11 @@
 package com.example.wowther.home
 
+import android.Manifest
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -21,15 +27,21 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
 import com.example.wowther.core.WeatherViewModel
 import com.example.wowther.core.composits.WeatherInformation
+import com.example.wowther.core.ext.decimalFormatToString
+import com.example.wowther.search.SearchActivity
 import com.example.wowther.ui.theme.WowtherTheme
 
 class HomeActivity : ComponentActivity() {
@@ -38,11 +50,25 @@ class HomeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        viewModel.initializeWeatherData()
-
         setContent {
+            val locationMgr = LocalContext.current.getSystemService(
+                Context.LOCATION_SERVICE
+            ) as LocationManager
+
+            val location = getLocation(locationMgr)
+
+            location?.let {
+                viewModel.initializeWeatherData(
+                    it.latitude.decimalFormatToString(),
+                    it.longitude.decimalFormatToString()
+                )
+            }
+
             WowtherTheme {
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
                     HomeComposite(viewModel)
                 }
             }
@@ -51,14 +77,53 @@ class HomeActivity : ComponentActivity() {
 }
 
 @Composable
+fun getLocation(locationManager: LocationManager): Location? {
+    var location: Location? by remember { mutableStateOf(null) }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val localContext = LocalContext.current
+
+    val locationListener = remember {
+        object : android.location.LocationListener {
+            override fun onLocationChanged(newLocation: Location) {
+                location = newLocation
+                locationManager.removeUpdates(this)
+            }
+
+            override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
+        }
+    }
+
+    LaunchedEffect(key1 = lifecycleOwner) {
+        if (ActivityCompat.checkSelfPermission(
+                localContext,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                localContext,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // TODO: check if theres still permission
+
+            return@LaunchedEffect
+        }
+
+        locationManager.requestSingleUpdate(LocationManager.GPS_PROVIDER, locationListener, null)
+    }
+
+    return location
+}
+
+@Composable
 fun HomeComposite(viewModel: WeatherViewModel) {
-    val maps = viewModel.locationInfos.observeAsState(initial = emptyMap()).value
+    val maps = viewModel.initialLocationInfos.observeAsState(initial = emptyMap()).value
     
     var tabIndex by remember {
         mutableStateOf(0)
     }
 
     val tabs: List<String> = maps.map { it.value.name }
+    val context = LocalContext.current
 
     Scaffold (
         topBar = {
@@ -66,8 +131,8 @@ fun HomeComposite(viewModel: WeatherViewModel) {
                 if (maps.size > 0) {
                     IconButton(
                         onClick = {
-                            // send to Search screen
-
+                            val intent = Intent(context, SearchActivity::class.java)
+                            context.startActivity(intent)
                         }) {
                         Icon(Icons.Filled.Search, "")
                     }
@@ -101,10 +166,3 @@ fun HomeComposite(viewModel: WeatherViewModel) {
     )
 }
 
-//@Preview(showBackground = true)
-//@Composable
-//fun HomeCompositePreview() {
-//    WowtherTheme {
-//        HomeComposite()
-//    }
-//}

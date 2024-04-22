@@ -10,14 +10,15 @@ import kotlinx.coroutines.launch
 class WeatherViewModel : ViewModel() {
     private val service = WeatherService.api
 
-    val locationInfos: MutableLiveData<Map<String, WeatherData>> = MutableLiveData(emptyMap())
+    val initialLocationInfos: MutableLiveData<Map<String, WeatherData>> = MutableLiveData(emptyMap())
     val hasError: MutableLiveData<Boolean> = MutableLiveData(false)
+    val locationInfos: MutableLiveData<WeatherData> = MutableLiveData()
 
-    fun getWeatherByLocation(lat: String, lon: String) {
+    fun getWeatherByLocation(lat: Double, lon: Double) {
         viewModelScope.launch {
             try {
-                val weather = service.getWeatherByLatLon(lat, lon)
-                addWeatherToMap(weather)
+                locationInfos.postValue(service.getWeatherByLatLon(lat, lon))
+
                 hasError.postValue(false)
             } catch (e: Exception) {
                 handleException(e)
@@ -28,8 +29,8 @@ class WeatherViewModel : ViewModel() {
     fun getWeatherByName(locationName: String) {
         viewModelScope.launch {
             try {
-                val weather = service.getWeatherByLocation(locationName = locationName)
-                addWeatherToMap(weather)
+                locationInfos.postValue(service.getWeatherByLocation(locationName = locationName))
+
                 hasError.postValue(false)
             } catch (e: Exception) {
                 handleException(e)
@@ -37,12 +38,7 @@ class WeatherViewModel : ViewModel() {
         }
     }
 
-    private fun addWeatherToMap(weatherData: WeatherData) {
-        val updatedMap = (locationInfos.value ?: emptyMap()).plus(weatherData.name to weatherData)
-        locationInfos.postValue(updatedMap)
-    }
-
-    fun initializeWeatherData() {
+    fun initializeWeatherData(lat: Double, lon: Double) {
         viewModelScope.launch {
             try {
                 Log.d("WeatherViewModel", "Initializing weather data...")
@@ -55,13 +51,21 @@ class WeatherViewModel : ViewModel() {
                     "Munich"
                 )
 
-                val weatherMap = locations.associateWith { location ->
+                val weatherMap = mutableMapOf<String, WeatherData>()
+
+                Log.d("WeatherViewModel", "Fetching weather data for coordinates: $lat, $lon")
+                val yourLocation = service.getWeatherByLatLon(lat, lon)
+                weatherMap.put(yourLocation.name, yourLocation)
+
+                locations.associateWith { location ->
                     Log.d("WeatherViewModel", "Fetching weather data for location: $location")
-                    service.getWeatherByLocation(locationName = location)
+                    val weather = service.getWeatherByLocation(locationName = location)
+
+                    weatherMap.put(weather.name, weather)
                 }
 
                 Log.d("WeatherViewModel", "Weather data initialized: $weatherMap")
-                locationInfos.postValue(weatherMap)
+                initialLocationInfos.postValue(weatherMap)
 
                 hasError.postValue(false)
             } catch (e: Exception) {

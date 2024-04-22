@@ -13,8 +13,8 @@ interface WeatherApiInterface {
 
     @GET("weather")
     suspend fun getWeatherByLatLon(
-        @Query("lat") latitude: String,
-        @Query("lon") longitude: String,
+        @Query("lat") latitude: Double,
+        @Query("lon") longitude: Double,
         @Query("appid") apiKey: String = ApiKeyProvider.apiKey
     ): WeatherData
 }
