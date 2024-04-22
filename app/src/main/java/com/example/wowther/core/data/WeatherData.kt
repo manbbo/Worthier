@@ -7,7 +7,6 @@ data class WeatherData(
     val main: Main,
     val visibility: Int,
     val wind: Wind,
-    val rain: Rain,
     val clouds: Clouds,
     val dt: Long,
     val sys: Sys,
@@ -44,10 +43,6 @@ data class Wind(
     val speed: Double,
     val deg: Int,
     val gust: Double
-)
-
-data class Rain(
-    val `1h`: Double
 )
 
 data class Clouds(
