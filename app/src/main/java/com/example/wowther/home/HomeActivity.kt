@@ -11,6 +11,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,6 +40,8 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import com.example.wowther.core.WeatherViewModel
+import com.example.wowther.core.composits.ErrorScreen
+import com.example.wowther.core.composits.LoadingScreen
 import com.example.wowther.core.composits.WeatherInformation
 import com.example.wowther.core.ext.decimalFormatToString
 import com.example.wowther.search.SearchActivity
@@ -117,52 +120,60 @@ fun getLocation(locationManager: LocationManager): Location? {
 @Composable
 fun HomeComposite(viewModel: WeatherViewModel) {
     val maps = viewModel.initialLocationInfos.observeAsState(initial = emptyMap()).value
-    
-    var tabIndex by remember {
-        mutableStateOf(0)
-    }
+    val errorState = viewModel.hasError.observeAsState(initial = false).value
 
-    val tabs: List<String> = maps.map { it.value.name }
-    val context = LocalContext.current
+    if (!errorState) {
+        if (maps.isNotEmpty()) {
+            var tabIndex by remember {
+                mutableStateOf(0)
+            }
 
-    Scaffold (
-        topBar = {
-            Row(modifier = Modifier.fillMaxWidth()) {
-                if (maps.size > 0) {
-                    IconButton(
-                        onClick = {
-                            val intent = Intent(context, SearchActivity::class.java)
-                            context.startActivity(intent)
-                        }) {
-                        Icon(Icons.Filled.Search, "")
-                    }
+            val tabs: List<String> = maps.map { it.value.name }
+            val context = LocalContext.current
 
-                    ScrollableTabRow(selectedTabIndex = tabIndex) {
-                        tabs.forEachIndexed { index, title ->
-                            Tab(text = { Text(text = title) },
-                                selected = tabIndex == index,
-                                onClick = { tabIndex = index })
+            Scaffold (
+                topBar = {
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        if (maps.isNotEmpty()) {
+                            IconButton(
+                                onClick = {
+                                    val intent = Intent(context, SearchActivity::class.java)
+                                    context.startActivity(intent)
+                                }) {
+                                Icon(Icons.Filled.Search, "")
+                            }
+
+                            ScrollableTabRow(selectedTabIndex = tabIndex) {
+                                tabs.forEachIndexed { index, title ->
+                                    Tab(text = { Text(text = title) },
+                                        selected = tabIndex == index,
+                                        onClick = { tabIndex = index })
+                                }
+                            }
                         }
                     }
-                }
-            }
-        },
-        content = { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .padding(innerPadding),
-                verticalArrangement = Arrangement.spacedBy(16.dp),) {
-                if (maps.size > 0) {
-                    maps.keys.forEachIndexed { index, keys ->
-                        if (tabIndex == index) {
-                            maps[keys]?.let {
-                                WeatherInformation(weatherData = it)
+                },
+                content = { innerPadding ->
+                    Column(
+                        modifier = Modifier
+                            .padding(innerPadding),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),) {
+                        if (maps.isNotEmpty()) {
+                            maps.keys.forEachIndexed { index, keys ->
+                                if (tabIndex == index) {
+                                    maps[keys]?.let {
+                                        WeatherInformation(weatherData = it)
+                                    }
+                                }
                             }
                         }
                     }
                 }
-            }
+            )
+        } else {
+            LoadingScreen()
         }
-    )
+    } else {
+        ErrorScreen()
+    }
 }
-
