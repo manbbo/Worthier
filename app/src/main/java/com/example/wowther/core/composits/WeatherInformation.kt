@@ -42,6 +42,7 @@ fun WeatherInformation(weatherData: WeatherData) {
             Text(text = "Wind ${weatherData.wind.speed} KM/H")
             Text(text = "Sunrise at ${weatherData.sys.sunrise.convertTimestampToHour()}")
             Text(text = "Sunset at ${weatherData.sys.sunset.convertTimestampToHour()}")
+            Spacer(modifier = Modifier.size(20.dp))
         }
     }
 }
