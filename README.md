@@ -17,10 +17,8 @@ Before running the application, you need to obtain an API key from OpenWeatherMa
 3. Copy the generated API key.
 
 ### Adding API Key
-1. Create a file named `local.properties` in the root directory of the project if it does not already exist.
-2. Add the following line to `local.properties`:
-
-apiKey="{your-api-key-here}"
+1. Create a file named `local.properties` in the root directory of the project if it does not already exist. If it exists, just go to the next step.
+2. Add the following line to `local.properties`: apiKey="{your-api-key-here}"
 
 Replace `{your-api-key-here}` with your actual API key obtained from OpenWeatherMap.
 
