@@ -9,8 +9,10 @@ import java.lang.Exception
 
 class WeatherViewModel: ViewModel() {
     private val service = WeatherService.api
-    lateinit var locationInfos: MutableLiveData<MutableMap<String, WeatherData>>
-    lateinit var hasError: MutableLiveData<Boolean>
+    var locationInfos: MutableLiveData<MutableMap<String, WeatherData>> =
+        MutableLiveData(mutableMapOf<String, WeatherData>())
+    var hasError: MutableLiveData<Boolean> =
+        MutableLiveData(false)
 
     fun getWeatherByLocation(lat: String, lon: String) {
         viewModelScope.launch {
@@ -45,12 +47,7 @@ class WeatherViewModel: ViewModel() {
     }
 
     private fun addWeatherToMap(weatherData: WeatherData) {
-        if (::locationInfos.isInitialized)
-            locationInfos.value?.let {
-                it[weatherData.name] = weatherData
-            }
-        else
-            locationInfos.postValue(mutableMapOf(Pair(weatherData.name, weatherData)))
+        locationInfos.value?.put(weatherData.name, weatherData)
     }
 
     fun initializeWeatherData() {
