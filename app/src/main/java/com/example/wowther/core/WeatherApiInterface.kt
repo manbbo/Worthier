@@ -2,18 +2,19 @@ package com.example.wowther.core
 
 import com.example.wowther.core.data.WeatherData
 import retrofit2.http.GET
-import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface WeatherApiInterface {
-    @GET("weather?q={location}&appid={api-key}")
+    @GET("weather")
     suspend fun getWeatherByLocation(
-        @Path("location") locationName: String,
-        @Path("api-key") apiKey: String = ApiKeyProvider.apiKey
+        @Query("q") locationName: String,
+        @Query("appid") apiKey: String = ApiKeyProvider.apiKey
     ): WeatherData
-    @GET("weather?lat={lat}&lon={lon}&appid={API key}")
+
+    @GET("weather")
     suspend fun getWeatherByLatLon(
-        @Path("lat") latitude: String,
-        @Path("lon") longitude: String,
-        @Path("api-key") apiKey: String = ApiKeyProvider.apiKey
+        @Query("lat") latitude: String,
+        @Query("lon") longitude: String,
+        @Query("appid") apiKey: String = ApiKeyProvider.apiKey
     ): WeatherData
 }
